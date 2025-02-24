@@ -14,21 +14,33 @@ def main():
 
 
 def forward_selection(df):
+    highest_accuracy_features = []
     current_features = []
+    max_accuracy = 0
     for i in range(1, df.shape[1]):
         print("On the " + str(i) + "th level of the search tree")
         feature = None
-        max_accuracy = 0
+        local_max_feature = None
+        local_max_accuracy = 0
         for j in range(1, df.shape[1]):
-            if(j not in current_features):
-                print("Considering adding " + str(j) + " feature")
-                accuracy = get_accuracy(df, current_features, j)
-                # print(accuracy)
-                if accuracy > max_accuracy:
-                    max_accuracy = accuracy
-                    feature = j
-        current_features.append(feature)
+            if(j in current_features or j in highest_accuracy_features):
+                continue
+            print("Considering adding " + str(j) + " feature")
+            accuracy = get_accuracy(df, current_features, j)
+            print(accuracy)
+            if accuracy > local_max_accuracy:
+                local_max_accuracy = accuracy
+                local_max_feature = j
+        if local_max_accuracy > max_accuracy:
+            max_accuracy = local_max_accuracy
+            feature = local_max_feature
+        print(max_accuracy)
+        if feature == None:
+            current_features.append(local_max_feature)
+            continue
+        highest_accuracy_features.append(feature)
         print("On level " + str(i) + ", I added feature " + str(feature))
+    print(current_features)
 
 def backward_selection(df):
     current_features = []
@@ -52,7 +64,7 @@ def get_accuracy(df, current_features, feature):
     df_copy = df.copy()
     correctly_classified = 0
     for i in range(df_copy.shape[1]):
-        if i not in current_features and i != feature:
+        if i not in current_features and i != feature and i != 0:
             df_copy[i] = 0
     for i in range(1, df_copy.shape[0]):
         obj_to_classify = df_copy.iloc[i,1:].values
@@ -66,13 +78,11 @@ def get_accuracy(df, current_features, feature):
                     nn_dist = distance
                     nn_location = j
                     nn_label = df_copy.iloc[nn_location,0]
+                    
         if nn_label == label_obj_to_classify:
-            
             correctly_classified = correctly_classified + 1
-    return (correctly_classified / df_copy.shape[0])
-
-
-    # return 0
+    accuracy = (correctly_classified / df_copy.shape[0])
+    return accuracy
 
 
     
