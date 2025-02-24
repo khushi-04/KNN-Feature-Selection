@@ -10,7 +10,6 @@ def main():
     print("This dataset has " + str(df.shape[1]-1) + " columns, not including the class attribute. It has " + str(df.shape[0]) + " instances.")
 
     forward_selection(df)
-    # df[1] = 0
 
 
 def forward_selection(df):
@@ -19,7 +18,6 @@ def forward_selection(df):
     max_accuracy = 0
     for i in range(1, df.shape[1]):
         print("On the " + str(i) + "th level of the search tree")
-        feature = None
         local_max_feature = None
         local_max_accuracy = 0
         for j in range(1, df.shape[1]):
@@ -31,16 +29,15 @@ def forward_selection(df):
             if accuracy > local_max_accuracy:
                 local_max_accuracy = accuracy
                 local_max_feature = j
+        # append the local maximum feature, even if it isn't the best accuracy -- ensures that there's no infinite loop by continuing the greedy algorithm
+        current_features.append(local_max_feature)
+        # if the local max is more than our actual max, then we should make that the set of features
         if local_max_accuracy > max_accuracy:
             max_accuracy = local_max_accuracy
-            feature = local_max_feature
+            highest_accuracy_features = current_features
         print(max_accuracy)
-        if feature == None:
-            current_features.append(local_max_feature)
-            continue
-        highest_accuracy_features.append(feature)
-        print("On level " + str(i) + ", I added feature " + str(feature))
-    print(current_features)
+        print("On level " + str(i) + ", I added feature " + str(local_max_feature))
+    print(highest_accuracy_features)
 
 def backward_selection(df):
     current_features = []
