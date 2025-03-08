@@ -2,7 +2,6 @@ import pandas as pd
 import numpy as np
 import time
 
-
 def main():
     file = str(input("Welcome to my Feature Selection Algorithm!\nPlease type in the name of the file to test the algorithm (using format: name_of_file.txt): \n"))
     selection = input("\nNow, please type in the number of the feature selection algorithm you want to run:\n\n1) Forwards Selection\n2) Backwards Selection\n")
@@ -11,20 +10,21 @@ def main():
     # forward selection
     if selection == '1':
         # base accuracy, no features
-        base_accuracy = get_accuracy(df,4)
+        base_accuracy = get_accuracy(df,[])
         print("\nRunning nearest neighbor with no features, using 'leave-one-out' evaluation, I get an accuracy of " + str(base_accuracy)) 
         print("Starting search...")
         forward_selection(df, base_accuracy)
     # backward selection
     else:
         # base accuracy, all features
-        base_accuracy = get_accuracy(df,0)
+        base_accuracy = get_accuracy(df,list(range(1, df.shape[1])))
         print("\nRunning nearest neighbor with all " + str(df.shape[1]-1) + " features, using 'leave-one-out' evaluation, I get an accuracy of " + str(base_accuracy)) 
         print("Starting search...")
         backward_selection(df, base_accuracy)
 
-def forward_selection(df, min_accuracy):
+# both forward and backward selection built based on lecture slides/Dr.Keogh's lecture videos
 
+def forward_selection(df, min_accuracy):
     # initializing variables
     begin = time.perf_counter() # start time taken 
     highest_accuracy_features = [] # stores final chosen features 
@@ -46,7 +46,7 @@ def forward_selection(df, min_accuracy):
             if(j in current_features or j in highest_accuracy_features):
                 continue
             # calculate accuracy if adding current feature increases accuracy
-            accuracy = get_accuracy(df, 1, current_features, j)
+            accuracy = get_accuracy(df, list(current_features) + [j])
             print(f"Using feature(s) {current_features+ [j]}, accuracy is {round(accuracy*100, 2)}%")
             if accuracy > local_max_accuracy:
                 local_max_accuracy = accuracy
@@ -88,7 +88,7 @@ def backward_selection(df, min_accuracy):
             # check to see if current feature has not be REMOVED, rather than if it has been added
             if(j not in current_features):
                 continue
-            accuracy = get_accuracy(df, 2, current_features, j)
+            accuracy = get_accuracy(df, [col for col in current_features if col != j])
             selected_features = current_features.copy()
             selected_features.remove(j)
             print(f"Using feature(s) {selected_features}, accuracy is {round(accuracy*100, 2)}%")
@@ -113,24 +113,16 @@ def backward_selection(df, min_accuracy):
         return
     print(f"\nSuccess! The best feature subset is {highest_accuracy_features}, with an accuracy of {round(max_accuracy*100, 2)}%! The time taken is {round(time.perf_counter() - begin, 3)} seconds.")
 
-def get_accuracy(df, selection_type, current_features = None, feature = None):
+def get_accuracy(df, current_features = None):
     # using numpy since it is more efficient for performing matrix calculations
     # resources: https://stackoverflow.com/questions/52670767/summing-array-values-over-a-specific-range-with-numpy
         # https://numpy.org/doc/2.1/reference/generated/numpy.array.html
         # https://www.geeksforgeeks.org/python-numpy/
     data = df.to_numpy()
     labels = data[:, 0]
-    if selection_type == 0: # all features case
-        selected_features = list(range(1, data.shape[1]))  
-    elif selection_type == 1: # forward selection
-        selected_features = list(current_features) + [feature]
-    elif selection_type == 2: #backward selection
-        selected_features = [col for col in current_features if col != feature]
-    else: # no features case
-        selected_features = []
-    
+
     # getting the features to check for accuracy
-    features = data[:, selected_features]
+    features = data[:, current_features]
     correctly_classified = 0
     num_samples = features.shape[0]
 
