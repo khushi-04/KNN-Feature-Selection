@@ -6,20 +6,21 @@ def main():
     file = str(input("Welcome to my Feature Selection Algorithm!\nPlease type in the name of the file to test the algorithm (using format: name_of_file.txt): \n"))
     selection = input("\nNow, please type in the number of the feature selection algorithm you want to run:\n\n1) Forwards Selection\n2) Backwards Selection\n")
     df = pd.read_csv(file, delimiter=r"\s+", header=None, dtype=float)
+    # df = pd.read_excel(file, engine="openpyxl")
     print("This dataset has " + str(df.shape[1]-1) + " columns, not including the class attribute. It has " + str(df.shape[0]) + " instances.")
     # forward selection
     if selection == '1':
         # base accuracy, no features
         base_accuracy = get_accuracy(df,[])
-        print("\nRunning nearest neighbor with no features, using 'leave-one-out' evaluation, I get an accuracy of " + str(base_accuracy)) 
-        print("Starting search...")
+        print(f"\nRunning nearest neighbor with no features, using 'leave-one-out' evaluation, I get an accuracy of {(round(base_accuracy*100, 2))}%")
+        print("Beginning search.")
         forward_selection(df, base_accuracy)
     # backward selection
     else:
         # base accuracy, all features
         base_accuracy = get_accuracy(df,list(range(1, df.shape[1])))
-        print("\nRunning nearest neighbor with all " + str(df.shape[1]-1) + " features, using 'leave-one-out' evaluation, I get an accuracy of " + str(base_accuracy)) 
-        print("Starting search...")
+        print(f"\nRunning nearest neighbor with all {(df.shape[1]-1)} features, using 'leave-one-out' evaluation, I get an accuracy of {(round(base_accuracy*100, 2))}%") 
+        print("Beginning search.")
         backward_selection(df, base_accuracy)
 
 # both forward and backward selection built based on lecture slides/Dr.Keogh's lecture videos
@@ -53,10 +54,11 @@ def forward_selection(df, min_accuracy):
                 local_max_feature = j     
 
         # append the local maximum feature, even if it isn't the best accuracy -- ensures that there's no infinite loop by continuing the greedy algorithm
-        current_features.append(local_max_feature)
-        get_max_accuracy = round(local_max_accuracy*100,2)
-        all_max_accuracies.append(get_max_accuracy)
-        all_max_features.append(local_max_feature)
+        if local_max_feature != None:
+            current_features.append(local_max_feature)
+            get_max_accuracy = round(local_max_accuracy*100,2)
+            all_max_accuracies.append(get_max_accuracy)
+            all_max_features.append(local_max_feature)
         
         if local_max_accuracy < max_accuracy:
             print("(Warning, the overall accuracy has decreased. Continuing search in case of local maxima!)")
@@ -76,7 +78,10 @@ def forward_selection(df, min_accuracy):
 def backward_selection(df, min_accuracy):
     begin = time.perf_counter()
     highest_accuracy_features = []
-    current_features = df.columns.tolist()[1:] # take all set of features
+    # current_features = df.columns.tolist()[1:] # take all set of features
+
+    num_columns = len(df.columns) - 1  # Get total columns minus 1
+    current_features = list(range(1, num_columns + 1))     
     max_accuracy = min_accuracy
     all_max_accuracies = []
     all_max_features = []
@@ -120,9 +125,10 @@ def get_accuracy(df, current_features = None):
         # https://www.geeksforgeeks.org/python-numpy/
     data = df.to_numpy()
     labels = data[:, 0]
-
+    current_features = [int(f) for f in current_features]
     # getting the features to check for accuracy
     features = data[:, current_features]
+
     correctly_classified = 0
     num_samples = features.shape[0]
 
