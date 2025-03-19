@@ -6,6 +6,8 @@ def main():
     file = str(input("Welcome to my Feature Selection Algorithm!\nPlease type in the name of the file to test the algorithm (using format: name_of_file.txt): \n"))
     selection = input("\nNow, please type in the number of the feature selection algorithm you want to run:\n\n1) Forwards Selection\n2) Backwards Selection\n")
     df = pd.read_csv(file, delimiter=r"\s+", header=None, dtype=float)
+
+    # uncomment to run excel file (for extra credit)
     # df = pd.read_excel(file, engine="openpyxl")
     print("This dataset has " + str(df.shape[1]-1) + " columns, not including the class attribute. It has " + str(df.shape[0]) + " instances.")
     # forward selection
